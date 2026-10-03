@@ -1,0 +1,46 @@
+# Дополнение к IsaacLab/docker/docker-compose.yaml.
+# Все source-пути считаются от каталога официального compose-файла.
+services:
+  isaac-lab-base:
+    container_name: isaac-lab-ugv
+    volumes:
+      - type: bind
+        source: ../source
+        target: /workspace/isaaclab/source
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../scripts
+        target: /workspace/isaaclab/scripts
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../docs
+        target: /workspace/isaaclab/docs
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../tools
+        target: /workspace/isaaclab/tools
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../../research-data/.bash_history
+        target: /root/.bash_history
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../../ugv-route-planning
+        target: /workspace/ugv-route-planning
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../../research-data
+        target: /workspace/research-data
+        bind:
+          create_host_path: false

@@ -3,7 +3,11 @@ experiment_name: example
 code_commit: null
 isaac_lab_version: v3.0.0-EA
 container_image: isaac-lab-base
+container_image_id: null
+compose_project: ugv-route-planning
+container_name: isaac-lab-ugv
 seed: 42
 dataset: null
+output_dir: /workspace/research-data/runs/example
 command: null
 notes: null
