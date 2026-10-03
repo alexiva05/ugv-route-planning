@@ -1,0 +1,9 @@
+# Скопируйте файл под именем конкретного эксперимента и заполните поля.
+experiment_name: example
+code_commit: null
+isaac_lab_version: v3.0.0-EA
+container_image: isaac-lab-base
+seed: 42
+dataset: null
+command: null
+notes: null

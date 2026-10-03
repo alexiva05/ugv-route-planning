@@ -1,0 +1,33 @@
+# Python and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# Experimental data and generated output
+datasets/
+checkpoints/
+logs/
+runs/
+*.log
+*.pt
+*.pth
+*.ckpt
+*.bag
+*.db3
+*.mcap
+*.h5
+*.hdf5
+*.npy
+*.npz
+
+# Editor and system files
+.idea/
+.vscode/
+.DS_Store
