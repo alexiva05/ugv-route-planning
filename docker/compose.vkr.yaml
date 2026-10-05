@@ -1,0 +1,16 @@
+# Paths are relative to IsaacLab/docker/docker-compose.yaml, the first Compose file.
+name: ugv-vkr
+
+services:
+  isaac-lab-base:
+    volumes:
+      - type: bind
+        source: ../../ugv-route-planning
+        target: /workspace/ugv-route-planning
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../../research-data
+        target: /workspace/research-data
+        bind:
+          create_host_path: false

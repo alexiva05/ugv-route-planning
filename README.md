@@ -17,6 +17,15 @@ IsaacLab v3.0.0-EA находится отдельно в `../IsaacLab`. Наб�
 
 ## Контейнер ВКР
 
-Для проекта используется отдельный контейнер `isaac-lab-ugv`.
-Его папки, команды входа и особенности X11 описаны в
-[docker/README.md](docker/README.md).
+Рабочий контейнер — `isaac-lab-base-vkr`, Compose-проект — `ugv-vkr`.
+GUI, загрузка модели и сохранение файла в `research-data` проверены пользователем.
+Команды сборки, входа и остановки: [docker/README.md](docker/README.md).
+
+После входа в контейнер GUI запускается так:
+
+```bash
+/workspace/ugv-route-planning/scripts/gui.sh
+```
+
+Сценарий использует Python Isaac Sim и включает меню **File → Save As…**.
+Установка `uv` для этой Docker-сборки не требуется.

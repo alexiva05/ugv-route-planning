@@ -1,12 +1,16 @@
-# Скопируйте файл под именем конкретного эксперимента и заполните поля.
+# Скопируйте файл для конкретного эксперимента и заполните фактические значения.
 experiment_name: example
 code_commit: null
 isaac_lab_version: v3.0.0-EA
-container_image: isaac-lab-base
+isaac_lab_commit: ae37b028ea415c91ea2bc32609efcd759ed2b974
+isaac_sim_version: 6.1.0
+container_image: isaac-lab-base-vkr:latest
 container_image_id: null
-compose_project: ugv-route-planning
-container_name: isaac-lab-ugv
+compose_project: ugv-vkr
+container_name: isaac-lab-base-vkr
+python_launcher: /isaac-sim/python.sh
 seed: 42
+assets_dir: /workspace/research-data/assets/ugv
 dataset: null
 output_dir: /workspace/research-data/runs/example
 command: null

@@ -1,58 +1,154 @@
 # Контейнер ВКР
 
-Рабочий контейнер проекта: `isaac-lab-ugv`. Старый контейнер
-`isaac-lab-base` остаётся отдельным.
+Рабочий контейнер и образ: `isaac-lab-base-vkr`. Compose-проект: `ugv-vkr`.
+Запуск использует штатный `IsaacLab/docker/container.py`, профиль `base`,
+`--suffix vkr` и единственное дополнение `compose.vkr.yaml`.
+Контейнер собирается из Dockerfile Isaac Lab и не требует другого запущенного контейнера.
 
-## Папки
+Проверенный checkout Isaac Lab: `v3.0.0-EA`, коммит
+`ae37b028ea415c91ea2bc32609efcd759ed2b974`.
+В его `docker/.env.base` задан Isaac Sim `6.1.0`.
+Пользователь образа имеет UID/GID 1000, совпадающие с владельцем каталогов
+на текущем хосте. На другом компьютере нужно проверить права на эти каталоги.
 
-- Код: `~/robotics/ugv-route-planning` → `/workspace/ugv-route-planning` (только чтение).
-- Данные: `~/robotics/research-data` → `/workspace/research-data` (чтение и запись).
-- Исходники IsaacLab подключены к контейнеру ВКР только для чтения.
-- Результаты сохранять в `/workspace/research-data/runs/`.
+## Каталоги
 
-## Повседневные команды
+Репозитории и данные расположены рядом:
 
-Войти от своего пользователя:
+```text
+~/robotics/
+├── IsaacLab/
+├── ugv-route-planning/
+└── research-data/
+```
 
-`docker exec -it --user "$(id -u):$(id -g)" --env HOME=/workspace/research-data --workdir /workspace/ugv-route-planning isaac-lab-ugv bash --noprofile --norc`
+| Каталог хоста | Путь в контейнере |
+| --- | --- |
+| `ugv-route-planning/` | `/workspace/ugv-route-planning` |
+| `research-data/` | `/workspace/research-data` |
+| `IsaacLab/source/` | `/workspace/isaaclab/source` |
+| `IsaacLab/scripts/` | `/workspace/isaaclab/scripts` |
+| `IsaacLab/docs/` | `/workspace/isaaclab/docs` |
+| `IsaacLab/tools/` | `/workspace/isaaclab/tools` |
 
-Остановить только контейнер ВКР: `docker stop isaac-lab-ugv`
+Все перечисленные подключения разрешают чтение и запись. Весь каталог
+IsaacLab целиком не монтируется: остальные файлы находятся в образе.
+Результаты экспериментов сохраняйте в `/workspace/research-data/runs/`.
+Кэши, служебные данные и стандартные журналы Isaac Lab/Isaac Sim находятся
+в отдельных именованных томах Docker с префиксом `ugv-vkr_`.
 
-Снова запустить его: `docker start isaac-lab-ugv`
+## Создание или обновление контейнера
 
-После перезагрузки временный X11-файл может исчезнуть; тогда
-`docker start` сообщит об отсутствующем пути. Не используйте для остановки
-`IsaacLab/docker/container.py stop`: в этой версии он удаляет тома Docker.
+На хосте нужны Docker с Compose, NVIDIA Container Toolkit, драйвер NVIDIA
+и графическая сессия с доступным X11. На текущей машине проверялся `DISPLAY=:1`;
+при запуске используйте значение текущей сессии, не задавайте его жёстко.
 
-Статус `starting` или `unhealthy` означает, что проверка Docker пока не
-нашла `AppReady` в журнале Isaac Sim. При запущенной одной оболочке
-это ожидаемо и не является результатом проверки самой симуляции.
+В терминале Ubuntu, вне контейнера:
 
-## Первое создание контейнера
+```bash
+cd "$HOME/robotics/IsaacLab"
+./docker/container.py start base \
+  --files ../../ugv-route-planning/docker/compose.vkr.yaml \
+  --suffix vkr
+```
 
-Нужны уже собранный локальный образ `isaac-lab-base`, соседние каталоги
-`IsaacLab`, `ugv-route-planning`, `research-data` и действующий X11-файл.
-Запуск выполняется из каталога `IsaacLab/docker`:
+При первом запросе X11 forwarding ответьте `y`. Настройка хранится локально
+в `IsaacLab/docker/.container.cfg`. Скрипт подключает X11 и файл авторизации;
+GPU подключается штатным Compose-файлом Isaac Lab.
+`start` может пересобрать образ и пересоздать контейнер; изменения,
+сделанные только внутри файловой системы контейнера, при этом теряются.
+Bind mounts и именованные тома сохраняются.
 
-    cd "$HOME/robotics/IsaacLab/docker"
-    xauth_path=$(awk -F= '/^__isaaclab_tmp_xauth/ {
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2
-    }' .container.cfg)
-    if [ -f "$xauth_path" ]; then
-      export __ISAACLAB_TMP_XAUTH="$xauth_path"
-      export __ISAACLAB_TMP_DIR="$(dirname "$xauth_path")"
+Посмотреть конфигурацию без создания контейнера:
 
-      docker compose -p ugv-route-planning \
-        -f docker-compose.yaml \
-        -f ../../ugv-route-planning/docker/compose.override.yaml \
-        -f x11.yaml \
-        --profile base --env-file .env.base \
-        up -d --no-build --no-deps --no-recreate --pull never isaac-lab-base
-    else
-      echo "X11-файл отсутствует; запуск отменён" >&2
-    fi
+```bash
+./docker/container.py config base \
+  --files ../../ugv-route-planning/docker/compose.vkr.yaml \
+  --suffix vkr
+```
 
-`-p ugv-route-planning` выделяет собственные тома. Три файла `-f`
-передаются по порядку: официальный compose, подключения ВКР, X11.
-`--no-build --pull never` использует уже готовый образ. Если X11-файл
-отсутствует, команда остановится до запуска Docker.
+Команда `config` показывает основные настройки; X11-файл штатный помощник
+добавляет отдельно при `start`.
+
+## Вход и GUI
+
+На хосте:
+
+```bash
+cd "$HOME/robotics/IsaacLab"
+./docker/container.py enter base --suffix vkr
+```
+
+Внутри контейнера:
+
+```bash
+/workspace/ugv-route-planning/scripts/gui.sh
+```
+
+Сценарий запускает пример `create_empty.py` через Python Isaac Sim и
+AppLauncher, с визуализацией Kit. Он также включает `omni.kit.menu.file`,
+чтобы меню **File → Save As…** было доступно при каждом таком запуске.
+Наличие меню зависит от успешной загрузки расширения; ошибки видны в консоли.
+
+Зависимости этой Docker-сборки установлены в Python Isaac Sim. `uv` для
+этого запуска не требуется. Для собственного Python-сценария, использующего
+AppLauncher, команда имеет вид:
+
+```bash
+cd /workspace/isaaclab
+/isaac-sim/python.sh /workspace/ugv-route-planning/scripts/ИМЯ_СКРИПТА.py \
+  --viz kit --kit_args="--enable omni.kit.menu.file"
+```
+
+Замените `ИМЯ_СКРИПТА.py` именем существующего сценария.
+
+## Проверка данных
+
+Внутри контейнера:
+
+```bash
+nvidia-smi
+ls -lah /workspace/research-data/assets/ugv/working
+```
+
+В GUI загрузите модель из этого каталога. Для проверки записи используйте
+**File → Save As…** и сохраните копию под новым именем, например
+`/workspace/research-data/assets/ugv/working/ugv_save_test.usd`.
+На хосте файл появится в `~/robotics/research-data/assets/ugv/working/`.
+
+Пользователь подтвердил запуск GUI, загрузку модели и появление сохранённого
+USD-файла на хосте. В той сессии меню File включалось через Script Editor;
+`gui.sh` закрепляет включение того же расширения при старте. Автоматический
+старт расширения в `gui.sh` требует проверки при следующем запуске GUI.
+
+## Остановка и повторный запуск
+
+На хосте:
+
+```bash
+docker stop isaac-lab-base-vkr
+docker start isaac-lab-base-vkr
+```
+
+`exit` завершает только оболочку, открытую через `enter`.
+После перезагрузки хоста временный X11-файл может исчезнуть. Если обычный
+`docker start` не может подключить его, повторите команду `container.py start`
+с тем же дополнением и суффиксом, затем выполните `enter`.
+
+Для обычной остановки используйте `docker stop`: в этой версии
+`container.py stop` вызывает `docker compose down --volumes` и удаляет тома.
+
+## Воспроизводимость
+
+Сохраняйте код и настройки в Git, модели и результаты — в `research-data`.
+Для каждого эксперимента заполните `configs/experiment.example.yaml`:
+коммиты проекта и Isaac Lab, фактический образ, seed, данные и команду запуска.
+ID образа работающего контейнера можно получить на хосте:
+
+```bash
+docker inspect --format '{{.Image}}' isaac-lab-base-vkr
+```
+
+Для переноса окружения сохраните проверенный образ в архив или реестр:
+одно имя `:latest` не фиксирует его содержимое. Кэши Docker можно восстановить;
+уникальные сцены, checkpoint и результаты должны иметь резервную копию.
