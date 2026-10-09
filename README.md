@@ -15,6 +15,17 @@ IsaacLab v3.0.0-EA находится отдельно в `../IsaacLab`. Наб�
 
 Для повторения эксперимента сохраняйте версию кода, конфигурацию, seed, команду запуска и расположение входных данных. Шаблон находится в `configs/experiment.example.yaml`.
 
+Текущие этапы проекта и критерии их завершения описаны в [ROADMAP.md](ROADMAP.md).
+
+## Калибровка UGV
+
+Результаты проверки сцены с приблизительной массой 50 кг и команды запуска
+скриптов: [reports/ugv_stage3_calibration_2026-10-09.md](reports/ugv_stage3_calibration_2026-10-09.md).
+Снимок данных, новая структура `working/` и резервный архив:
+[reports/ugv_data_snapshot_2026-10-09.md](reports/ugv_data_snapshot_2026-10-09.md).
+Проверенный профиль управления находится в `scripts/ugv_track_teleop.py`,
+регистратор времени физики — в `scripts/ugv_pose_logger.py`.
+
 ## Контейнер ВКР
 
 Рабочий контейнер — `isaac-lab-base-vkr`, Compose-проект — `ugv-vkr`.
